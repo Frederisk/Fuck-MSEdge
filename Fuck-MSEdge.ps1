@@ -1,6 +1,6 @@
-#!/usr/bin pwsh
-#Request -Version 5
-#Request -RunAsAdministrator
+#!/usr/bin/env -S pwsh -nop
+#Requires -Version 5
+#Requires -RunAsAdministrator
 
 using namespace System;
 using namespace System.Security.Principal;
