@@ -14,9 +14,11 @@ using namespace System.Security.Principal;
 #     # $ParameterName
 # )
 
+Set-StrictMode -Version Latest;
+
 [String]$SetupFile = '';
 [String]$WebviewSetupFile = '';
-[Switch]$AllowForceRemove = '';
+[Switch]$AllowForceRemove = $false;
 
 
 
@@ -101,4 +103,27 @@ if (Test-Path -Path $SetupFile) {
             Write-Error -Message 'Some newer versions of Edge no longer allow users to uninstall it by `setup.exe` that is located in the installation directory. You can use the `--AllowForceRemove` switch to force remove the installation directory, or use the `--SetupFile` parameter to specify the setup file that still has this functionality.';
         }
     }
+}
+
+
+
+## Part 3 Edge WebView
+
+if (-not [String]::IsNullOrWhiteSpace($WebviewSetupFile)) {
+    if (Test-Path -Path $WebviewSetupFile) {
+        $WebviewSetupFile = [Path]::GetFullPath($WebviewSetupFile);
+    }
+    else {
+        Write-Error -Message "WebView2 setup file not found: $WebviewSetupFile";
+        exit 1;
+    }
+}else {
+    # C:\Program Files (x86)\Microsoft\EdgeWebView\Application\120.0.2210.144\Installer\setup.exe
+    $WebviewSetupFile = [Path]::Combine($edgeRootDir, $webviewName, 'Application', $webviewVersion, 'Installer', 'setup.exe');
+}
+
+if (Test-Path -Path $WebviewSetupFile) {
+    $setup_exe = Get-Command -Name $WebviewSetupFile;
+    # setup.exe --uninstall --msedgewebview --system-level --force-uninstall
+
 }
