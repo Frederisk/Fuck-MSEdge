@@ -105,8 +105,6 @@ if (Test-Path -Path $SetupFile) {
     }
 }
 
-
-
 ## Part 3 Edge WebView
 
 if (-not [String]::IsNullOrWhiteSpace($WebviewSetupFile)) {
@@ -127,3 +125,50 @@ if (Test-Path -Path $WebviewSetupFile) {
     # setup.exe --uninstall --msedgewebview --system-level --force-uninstall
 
 }
+
+## Part 4 Edge update
+
+Remove-Item -Path ([Path]::Combine($edgeRootDir, $updateName)) -Recurse -Force;
+
+
+## Part 5 Active Setup
+
+Remove-Item -Path 'Registry::HKLM\SOFTWARE\Microsoft\Active Setup\Installed Components\{9459C573-B17A-45AE-9F64-1857B5D58CEE}' -Force;
+
+## Part 6 Desktop Icons
+
+# Get-ChildItem -Path ([Path]::Combine($env:HOMEDRIVE, 'Users')) | ForEach-Object -Process {
+
+# }
+
+## Part 7 Start Menu
+
+Remove-Item -Path ([Path]::Combine($env:ALLUSERSPROFILE, 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Microsoft Edge.lnk')) -Force;
+
+#z3 Part 8 Scheduled Tasks
+
+Get-ScheduledTask | Where-Object -FilterScript { $_.TaskName -match 'MicrosoftEdge' } | ForEach-Object -Process {
+    Unregister-ScheduledTask -TaskName $_.TaskName;
+};
+
+## Part 9 Task File
+
+Get-ChildItem -Path . -Recurse -Filter MicrosoftEdge* | Remove-Item -Force;
+
+## Part 10 Edge Update Services
+
+Remove-Service -Name 'edgeupdate' -ErrorAction SilentlyContinue;
+Remove-Service -Name 'edgeupdatem' -ErrorAction SilentlyContinue;
+
+Remove-Item -Path 'Registry::HKLM\SYSTEM\CurrentControlSet\Services\edgeupdate' -Force;
+Remove-Item -Path 'Registry::HKLM\SYSTEM\CurrentControlSet\Services\edgeupdatem' -Force;
+
+## Part 11 Edge Update - Remaining
+
+Remove-Item -Path 'Registry::HKLM\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate' -Force;
+
+## Part 12 Remaining Edge Keys
+# if (-not Test-Path -Path 'C:\Program Files (x86)\Microsoft\Edge\Application\pwahelper.exe')
+Remove-Item -Path 'Registry::HKLM\SOFTWARE\WOW6432Node\Microsoft\Edge' -Force;
+
+## Part 13 Folders SystemApps
