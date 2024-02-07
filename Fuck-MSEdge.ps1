@@ -5,6 +5,7 @@
 using namespace System;
 using namespace System.IO;
 using namespace System.Security.Principal;
+using namespace System.Security.AccessControl;
 
 
 # [CmdletBinding()]
@@ -172,3 +173,18 @@ Remove-Item -Path 'Registry::HKLM\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate' -Fo
 Remove-Item -Path 'Registry::HKLM\SOFTWARE\WOW6432Node\Microsoft\Edge' -Force;
 
 ## Part 13 Folders SystemApps
+Get-ChildItem -Path ([Path]::Combine($env:SystemRoot, 'SystemApps')) -Filter Microsoft.MicrosoftEdge* | ForEach-Object -Process {
+    # takeown /f "{}" /r /d y && icacls "{}" /grant administrators:F /t && rd /s /q "{}"
+    [FileSystemSecurity]$acl = Get-Acl -Path $_.FullName;
+    [NTAccount]$owner = [NTAccount]::new('BUILTIN', 'Administrators');
+    $acl.SetOwner($owner);
+    [FileSystemAccessRule]$rule = [FileSystemAccessRule]::new('BUILTIN\Administrators', 'FullControl', 'Allow');
+    $acl.SetAccessRule($rule);
+    Set-Acl -Path $_.FullName -AclObject $acl;
+
+    Remove-Item -Path $_.FullName -Recurse -Force;
+}
+
+# Part 14 System32
+# FIXME: takeown /f "{f.path}"
+# icacls "{f.path}" /inheritance:e /grant "{user_name}:(OI)(CI)F" /T /C
